@@ -1,0 +1,55 @@
+#include <iostream>
+#include <sstream>
+#include <fstream>
+using namespace std;
+bool isInVector (vector<int> input, int target){
+    for (int i =0; i<input.size(); i++){
+        if (input[i]==target){
+            return true;
+        }
+    }
+    return false;
+}
+vector<int> makeUnique(vector<int> input){
+    vector<int> output;
+    for (int i=0; i<input.size();i++){
+        if(! isInVector(output, input[i])){
+            output.push_back(input[i]);
+        }
+    }
+    return output;
+}
+vector<int> fillVectFromFile(){
+    string filename;
+    cout<<"Please provide the filename:";
+    cin>> filename;
+    vector<int> result;
+    ifstream file;
+    int i;
+    file.open(filename);
+    if (!file) {
+        cerr << "Failed to open "<< filename<<endl;
+        exit(1);
+    }
+    else{
+        while(file>>i){
+            result.push_back(i);
+        }
+        file.close();
+    }
+    return result;
+}
+void intonewfile(){
+    vector<int> lst=fillVectFromFile();
+    vector<int> result=makeUnique(lst);
+    ofstream output;
+    output.open("uniq.ints");
+    for (int i : result) {
+        output <<i;
+        }
+        output.close();
+}
+
+int main() {
+    intonewfile();
+}
