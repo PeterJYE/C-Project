@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+class Money{
+    double a;
+public:
+    Money();
+    void setamount(double newnum){a=newnum;}
+    int getamount() const{return a;}
+};
+Money:: Money(): a(0){
+}
+class Check{
+    int num;
+    Money amount;
+    bool cashedOrNot;
+public:
+    Check();
+    void setnumber(int number){num=number;}
+    int getnumber() const {return num;}
+    void setamount(double number){amount.setamount(number);}
+    double getamount() const{return amount.getamount();}
+    void cashout(){cashedOrNot=true;}
+    bool const cashed(){return cashedOrNot;}
+    void inputcheck();
+    void outputcheck();
+};
+Check:: Check():num(0),cashedOrNot(false){
+}
+void Check:: inputcheck(){
+    cout << "What is the check number? ";
+    cin>> num;
+    cout << "What is the check amount? ";
+    double a;
+    cin>> a;
+    amount.setamount(a);
+    cout<<" Is this check cashed out? yes/no ";
+
+    string y;
+    cin>>y;
+    if (y=="yes"){
+        cashedOrNot=true;
+    }
+        }
+void Check:: outputcheck(){
+    cout <<"check number: "<<num<<endl;
+    cout <<"check amount: "<<amount.getamount()<<endl;
+    if (cashedOrNot==true)
+        cout<<"This check was cashed out."<<endl;
+    else
+        cout<<"This check is not cashed out."<<endl;
+}
+int main() {
+    vector<Check> checklst;
+    bool more=true;
+    while(more){
+        Check c;
+        c.inputcheck();
+        checklst.push_back(c);
+        cout<<"Do you have more check to input? yes/no ";
+        string yes;
+        cin>>yes;
+        if (yes=="no")
+            more=false;
+    }
+    double total= 0;
+    vector<int> deposit;
+    bool more2=true;
+    while(more2){
+        cout<<"What is the amount of deposit? ";
+        double i;
+        cin>>i;
+        total=i+total;
+        deposit.push_back(i);
+        cout<<"Do you have more deposit to input? yes/no ";
+        string yes;
+        cin>>yes;
+        if (yes=="no")
+            more2=false;
+    }
+    double newb, oldb;
+    cout<<"What is the old balance? ";
+    cin>> oldb;
+    cout<<"what is the new balance? ";
+    cin>> newb;
+    double cashedout=0;
+    for(int i=0; i<checklst.size();i++){
+        if (checklst.at(i).cashed())
+            cashedout=cashedout+checklst.at(i).getamount();
+    }
+    double result=total+oldb-cashedout;
+    cout<< "Total of checks cashed: " <<cashedout<<endl;
+    cout<< "Total of deposit: " <<total<<endl;
+    cout<< "New balance should be: "<<result<<endl;
+    cout<< "The difference between the new balance should be and the new balace is: "<<newb-result<<endl;
+    cout<<"Here is the cashed out check list"<< endl;
+    for (int i=0;i<checklst.size();i++){
+        if(checklst.at(i).cashed()){
+            checklst.at(i).outputcheck();
+        }
+    }
+    cout<<"Here is the not cashed out check list"<<endl;
+    for (int i=0;i<checklst.size();i++){
+        if(not checklst.at(i).cashed()){
+            checklst.at(i).outputcheck();
+        }
+    }
+    
+    
+    
+    
+      
+
+    
+}
