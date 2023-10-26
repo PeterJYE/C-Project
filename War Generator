@@ -1,0 +1,333 @@
+#include <iostream>
+#include <vector>
+#include <random>
+#include <cstdlib>
+using namespace std;
+template<typename T>
+class Map;
+class Organism{
+protected:
+    int col;
+    int row;
+    Map<Organism*>* x;
+    bool moved;
+public:
+    Organism(Map<Organism*>* map, int col = 0, int row = 0) : col(col), row(row), x(map),moved(false) {}
+    //virtual
+    ~Organism() {}
+    virtual void move();
+    virtual bool isAnt()const {return true;}
+    virtual bool isDoodlebugs()const{return false;}
+    bool get(){return moved;}
+    void imoved(){moved=true;}
+    void nmoved(){moved=false;}
+};
+class Ant: public Organism{
+    int breedT;
+    
+public:
+    Ant(Map<Organism*>* map, int col = 0, int row = 0) : Organism(map, col, row), breedT(0) {}
+    bool isAnt()const {return true;}
+    bool isDoodlebugs()const{return false;}
+    void move();
+    void breed();
+};
+
+class Doodlebugs: public Organism{
+    int breedT;
+    int starveT;
+public:
+    Doodlebugs(Map<Organism*>* map, int col = 0, int row = 0) : Organism(map, col, row), breedT(0),starveT(0){}
+    bool isAnt()const {return false;}
+    bool isDoodlebugs()const{return true;}
+    void move();
+    void Die();
+};
+template<typename T>
+class Map{
+    Organism* arr[20][20];
+    int antn;
+    int bugn;
+public:
+    Map() {
+        antn=20;
+        bugn=5;
+        for (int i = 0; i < 20; i++) {
+            for (int j = 0; j < 20; j++) {
+                arr[i][j] = nullptr;
+            }
+        }
+        for (int i = 0; i < 20; i++) {
+            while (true) {
+                int r = rand() % 20;
+                int c = rand() % 20;
+                if (arr[c][r] == nullptr) {
+                    Ant* ant = new Ant(this, c, r);
+                    arr[c][r] = ant;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < 5; i++) {
+            while (true) {
+                int r = rand() % 19;
+                int c = rand() % 19;
+                if (arr[c][r] == nullptr) {
+                    Doodlebugs* bug = new Doodlebugs(this, c, r);
+                    arr[c][r] = bug;
+                    break;
+                }
+            }
+        }
+    }
+    Organism* (*getMap())[20] {
+            return arr;
+        }
+    void display();
+    void startgame();
+    void increaseant(){antn=antn+1;}
+    void increasebugn(){bugn=bugn+1;}
+    void decreaseant(){antn=antn-1;}
+    void decreasebugn(){bugn=bugn-1;}
+    
+    vector<int> check(int col,int row);
+};
+template<class T>
+void Map<T>::display(){
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 20; j++) {
+            if (j == 19) {
+                if (arr[i][j] == nullptr) {
+                    cout << '-' << "\n";
+                }
+                else if (arr[i][j]->isAnt()) {
+                    cout << 'o' << "\n";
+                }
+                else {
+                    cout << 'X' << "\n";
+                }
+            }
+            else {
+                if (arr[i][j] == nullptr) {
+                    cout << '-' << "\t";
+                }
+                else if (arr[i][j]->isAnt()) {
+                    cout << 'o' << "\t";
+                }
+                else {
+                    cout << 'X' << "\t";
+                }
+            }
+        }
+    }
+}
+template<class T>
+vector<int> Map<T>::check(int col, int row) {
+    vector<int> result;
+    if (col > 0 && arr[col - 1][row] == nullptr) {
+        result.push_back(0);
+    }
+    if (col < 19 && arr[col + 1][row] == nullptr) {
+        result.push_back(1);
+    }
+    if (row > 0 && arr[col][row - 1] == nullptr) {
+        result.push_back(2);
+    }
+    if (row < 19 && arr[col][row + 1] == nullptr) {
+        result.push_back(3);
+    }
+    return result;
+}
+void Organism::move() {
+    vector<int> empty = x->check(col, row);
+    int s = empty.size();
+    if (s == 0) {
+        return;
+    }
+    int i = rand() % s;
+    if (empty.at(i) == 0) {
+        x->getMap()[col][row] = nullptr;
+        x->getMap()[col - 1][row] = this;
+        col = col - 1;
+    }
+    else if (empty.at(i) == 1) {
+        x->getMap()[col][row] = nullptr;
+        x->getMap()[col + 1][row] = this;
+        col = col + 1;
+    }
+    else if (empty.at(i) == 2) {
+        x->getMap()[col][row] = nullptr;
+        x->getMap()[col][row - 1] = this;
+        row = row - 1;
+    }
+    else if (empty.at(i) == 3) {
+        x->getMap()[col][row] = nullptr;
+        x->getMap()[col][row + 1] = this;
+        row = row + 1;
+    }
+}
+
+void Ant::move(){
+    Organism::move();
+    breedT++;
+    if (breedT>=3){
+        breed();
+        x->increaseant();
+    }
+}
+void Ant::breed(){
+    vector<int> empty = x->check(col, row);
+    int s=empty.size();
+    if (s== 0) {
+        return;
+    }
+    int i = rand() % s;
+    if (empty.at(i) == 0) {
+        x->getMap()[col - 1][row] = new Ant(x, col - 1, row);
+    }
+    else if (empty.at(i) == 1) {
+        x->getMap()[col + 1][row] = new Ant(x, col + 1, row);
+        }
+    else if (empty.at(i) == 2) {
+        x->getMap()[col][row - 1] = new Ant(x, col, row - 1);
+    }
+    else if (empty.at(i) == 3) {
+        x->getMap()[col][row + 1] = new Ant(x, col, row + 1);
+    }
+    breedT = 0;
+}
+void Doodlebugs::move(){
+    breedT++;
+    starveT++;
+    vector<int> AroundAnts;
+    if(col>0&& x->getMap()[col - 1][row] != nullptr){
+        if((x->getMap()[col - 1][row])->isAnt()){
+            AroundAnts.push_back(0);
+        }}
+    if(col<19&& x->getMap()[col +1][row] != nullptr){
+        if((x->getMap()[col + 1][row])->isAnt()){
+            AroundAnts.push_back(1);
+        }}
+    if(row>0&& x->getMap()[col][row-1] != nullptr){
+        if((x->getMap()[col][row - 1])->isAnt()){
+            AroundAnts.push_back(2);
+        }}
+    if (row<19 &&x->getMap()[col][row+1] != nullptr){
+        if((x->getMap()[col][row+1])->isAnt()){
+            AroundAnts.push_back(3);
+        }
+    }
+    if (AroundAnts.size()!=0) {
+        x->decreaseant();
+        x->getMap()[col][row] = nullptr;
+        int i = rand() % AroundAnts.size();
+        int newX = col;
+        int newY = row;
+        if (AroundAnts[i] == 0) {
+            newX = col - 1;
+        }
+        else if (AroundAnts[i] == 1) {
+            newX = col + 1;
+        }
+        else if (AroundAnts[i] == 2) {
+            newY = row - 1;
+        }
+        else if (AroundAnts[i] == 3) {
+            newY = row + 1;
+        }
+        x->getMap()[newX][newY] = this;
+        col = newX;
+        row = newY;
+        starveT = 0;
+    }
+    else{
+        Organism::move();
+    }
+    if(breedT>=8){
+        vector<int> empty = x->check(col, row);
+        int s=empty.size();
+        if (s== 0) {
+            return;
+        }
+        int i = rand() % s;
+        if (empty.at(i) == 0) {
+            x->getMap()[col - 1][row] = new Doodlebugs(x, col - 1, row);
+        }
+        else if (empty.at(i) == 1) {
+            x->getMap()[col + 1][row] = new Doodlebugs(x, col + 1, row);
+            }
+        else if (empty.at(i) == 2) {
+            x->getMap()[col][row - 1] = new Doodlebugs(x, col, row - 1);
+        }
+        else if (empty.at(i) == 3) {
+            x->getMap()[col][row + 1] = new Doodlebugs(x, col, row + 1);
+        }
+        breedT = 0;
+        x->increasebugn();
+    }
+    if(starveT==3){
+        Die();
+    }
+}
+void Doodlebugs::Die(){
+    int c = col;
+    int r = row;
+    x->getMap()[c][r] = nullptr;
+    x->decreasebugn();
+}
+template<class T>
+void Map<T>::startgame() {
+    cout << "Prey Game Start" << endl;
+       int i = 0;
+       while (true) {
+           display();
+           for (int i = 0; i < 20; i++) {
+               for (int j = 0; j < 20; j++) {
+                   if (arr[i][j] && arr[i][j]->isDoodlebugs() && arr[i][j]->get() == false) {
+                       arr[i][j]->imoved();
+                       Doodlebugs* doodlebug = dynamic_cast<Doodlebugs*>(arr[i][j]);
+                       if (doodlebug != nullptr) {
+                           doodlebug->move();
+                       }
+                   }
+               }
+           }
+           for (int i = 0; i < 20; i++) {
+               for (int j = 0; j < 20; j++) {
+                   if (arr[i][j] && arr[i][j]->isAnt() && arr[i][j]->get() == false) {
+                       arr[i][j]->imoved();
+                       Ant* ant = dynamic_cast<Ant*>(arr[i][j]);
+                       if (ant != nullptr) {
+                           ant->move();
+                       }
+                   }
+               }
+           }
+           for (int i = 0; i < 20; i++) {
+               for (int j = 0; j < 20; j++) {
+                   if (arr[i][j] && (arr[i][j]->isAnt() || arr[i][j]->isDoodlebugs())) {
+                       arr[i][j]->nmoved();
+                   }
+               }
+           }
+           if (antn == 0 || bugn == 0) {
+               if (bugn == 0) {
+                   cout << "Trial " << i + 1 << endl;
+                   display();
+                   cout << "Ants win!" << endl;
+               }
+               if (antn == 0) {
+                   cout << "Trial " << i + 1 << endl;
+                   display();
+                   cout << "Doodlebugs win!" << endl;
+               }
+               break;
+           }
+           i++;
+           cout << "Trial " << i << endl;
+       }
+}
+int main() {
+    Map<Organism*> Mapx;
+    Mapx.startgame();
+}
