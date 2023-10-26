@@ -1,0 +1,112 @@
+#include <iostream>
+using namespace std;
+void swapCstring(char* x){
+    char* front=x;
+    char* rear=x;
+    while (*rear!= '\0'){
+        rear++;
+    }
+    rear--;
+    while(front<rear){
+        char temp=*front;
+        *front=*rear;
+        *rear=temp;
+        front++;
+        rear--;
+    }
+}
+void newItemToArray(int*& arr, int& size, const int newint) {
+    int* temp = new int[size + 1];
+    if (size == 0) {
+        temp[0] = newint;
+        delete[] arr;
+        arr = temp;
+        size++;
+        return;
+    }
+
+    if (size == 1) {
+        if (newint < arr[0]) {
+            temp[0] = newint;
+            temp[1] = arr[0];
+        }
+        else {
+            temp[0] = arr[0];
+            temp[1] = newint;
+        }
+        size++;
+        delete[] arr;
+        arr = temp;
+        return;
+    }
+
+    if (newint < arr[0]) {
+        temp[0] = newint;
+        for (int j = 1; j < size + 1; j++) {
+            temp[j] = arr[j - 1];
+        }
+        delete[] arr;
+        arr = temp;
+        size++;
+        return;
+    }
+
+    int i = 0;
+    while (i < size - 1) {
+        if (arr[i] < newint && newint < arr[i + 1]) {
+            break;
+        }
+        i++;
+    }
+
+    if (i == size - 1) {
+        for (int j = 0; j < size; j++) {
+            temp[j] = arr[j];
+        }
+        temp[size] = newint;
+    }
+    else {
+        for (int j = 0; j <= i; j++) {
+            temp[j] = arr[j];
+        }
+        temp[i + 1] = newint;
+        for (int j = i + 1; j < size; j++) {
+            temp[j + 1] = arr[j];
+        }
+    }
+    delete[] arr;
+    arr = temp;
+    size++;
+}
+void histogram(){
+    vector<int> grades;
+    int grade;
+    cout<<"Enter the grade:(Input -1 to stop)";
+    while(true) {
+        cin >> grade;
+        if(grade==-1){
+            break;
+        }
+        grades.push_back(grade);
+        }
+    int maxgrade=0;
+    for(int i=0;i<grades.size();i++){
+        if(maxgrade<grades.at(i)){
+            maxgrade=grades.at(i);
+        }
+    }
+    int* arr=new int[maxgrade+1];
+    for(int i=0;i<grades.size();i++ ){
+        arr[grades.at(i)]++;
+    }
+    for (int i = 0; i <= maxgrade; i++) {
+        if (arr[i]!=0)
+            cout << "Number of "<< i << "'s: " << arr[i] <<endl;
+    }
+    
+}
+
+int main() {
+    histogram();
+    
+}
