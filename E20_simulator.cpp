@@ -1,9 +1,3 @@
-/*
-CS-UY 2214
-Adapted from Jeff Epstein
-Starter code for E20 cache Simulator
-simcache.cpp
-*/
 
 #include <cstddef>
 #include <cstdint>
